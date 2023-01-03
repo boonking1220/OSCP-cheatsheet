@@ -11,6 +11,8 @@
 python -c 'import pty; pty.spawn("/bin/bash")'
 python2.7 -c 'import pty; pty.spawn("/bin/bash")'
 python3 -c 'import pty; pty.spawn("/bin/bash")'
+
+stty raw -echo && fg
 ```
 
 ## GUI smb/ftp folder
