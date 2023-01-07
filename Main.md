@@ -77,6 +77,7 @@ xdg-open ftp://
 ## Mount/connect share
 Linux
 ```
+showmount -e 10.11.1.136
 sudo mount -t cifs //10.11.1.136/'Bob Share' /tmp/lol
 sudo mount -o port=5555 -t nfs 127.0.0.1:/srv/Share /tmp/lol
 
