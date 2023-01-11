@@ -330,6 +330,7 @@ sudo -l
 find / -perm -u=s -type f 2>/dev/null
 find / -mmin -10 2>/dev/null | grep -Ev "^/proc"
 find / -perm -2 -type f 2>/dev/null
+find /etc -writable -ls 2>/dev/null
 check /backups or /var/backups
 find / -name authorized_keys 2> /dev/null
 find / -name id_rsa 2> /dev/null
