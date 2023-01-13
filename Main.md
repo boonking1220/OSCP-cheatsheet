@@ -114,6 +114,8 @@ SELECT user()
 SHOW DATABASE
 SHOW TABLES
 SELECT host, user, password FROM mysql.user
+dbuser/dbpass
+db_user/db_pass
 
 # Windows:
 Mssql (port 1433), common username = sa
