@@ -31,6 +31,9 @@ python2 -m SimpleHTTPServer 80
 python3 -m http.server 80
 
 php -S 0.0.0.0:80
+
+# For Windows:
+https://github.com/TheWaWaR/simple-http-server
 ```
 
 ## Directory/Path Traversal
