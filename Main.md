@@ -1,4 +1,4 @@
-# O.S.C.P-cheat-sheet
+# OSCP-cheat-sheet
 
 ## Program first line execution
 ```
